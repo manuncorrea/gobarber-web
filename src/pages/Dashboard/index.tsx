@@ -21,6 +21,7 @@ import logoImg from '../../assets/logo.svg';
 import { FiClock, FiPower } from 'react-icons/fi';
 import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
+import { parseISO } from 'date-fns/esm';
 
 interface MonthAvailabilityItem {
   day: number;
@@ -30,6 +31,7 @@ interface MonthAvailabilityItem {
 interface Appointment {
   id: string;
   date: string;
+  hourFormatted: string;
   user: {
     name: string;
     avatar_url: string;
@@ -73,7 +75,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     api
-    .get('/appointments/me', {
+    .get<Appointment[]>('/appointments/me', {
       params: {
         year: selectedDate.getFullYear(),
         month: selectedDate.getMonth() + 1,
@@ -81,8 +83,14 @@ const Dashboard: React.FC = () => {
       },
     })
     .then(response => {
-      setAppointments(response.data);
-      console.log(response.data);
+      const appointmentsFormetted = response.data.map(appointment => {
+        return {
+          ...appointment,
+          hourFormatted: format(parseISO(appointment.date), 'HH:mm'),
+        };
+      });
+
+      setAppointments(appointmentsFormetted);
     });
   }, [selectedDate])
 
@@ -110,6 +118,17 @@ const Dashboard: React.FC = () => {
     });
   }, [selectedDate])
   
+  const morningAppointments = useMemo(() => {
+    return appointments.filter(appointment => {
+      return parseISO(appointment.date).getHours() < 12;
+    })
+  }, [appointments]);
+
+  const afternoonAppointments = useMemo(() => {
+    return appointments.filter(appointment => {
+      return parseISO(appointment.date).getHours() >= 12;
+    })
+  }, [appointments]);
   return(
     <Container>
       <Header>
@@ -152,50 +171,51 @@ const Dashboard: React.FC = () => {
                 </span>
               </div>
             </NextAppointment>
+
             <Section>
               <strong>Manhã</strong>
-              <Appointment>
+              {morningAppointments.map(appointment => (
+                <Appointment key={appointment.id}>
                 <span>
                   <FiClock />
-                  08:00
+                  {appointment.hourFormatted}
                 </span>
 
                 <div>
-                  <img src="https://avatars3.githubusercontent.com/u/15049865?s=460&u=6d58b57ac3c885fe570eb32c1b0a273e72771060&v=4" alt="Manu Correa"/>
+                  <img 
+                    src={appointment.user.avatar_url} 
+                    alt={appointment.user.name}
+                  />
 
-                  <strong>Manu Correa</strong>
+                  <strong>{appointment.user.name}</strong>
 
                 </div>
               </Appointment>
 
-              <Appointment>
-                <span>
-                  <FiClock />
-                  11:00
-                </span>
-
-                <div>
-                  <img src="https://avatars3.githubusercontent.com/u/15049865?s=460&u=6d58b57ac3c885fe570eb32c1b0a273e72771060&v=4" alt="Manu Correa"/>
-
-                  <strong>Manu Correa</strong>
-
-                </div>
-              </Appointment>
+              ))}
+              
+          
               <strong>Tarde</strong>
-
-              <Appointment>
+              {afternoonAppointments.map(appointment => (
+                <Appointment key={appointment.id}>
                 <span>
                   <FiClock />
-                  14:00
+                  {appointment.hourFormatted}
                 </span>
 
                 <div>
-                  <img src="https://avatars3.githubusercontent.com/u/15049865?s=460&u=6d58b57ac3c885fe570eb32c1b0a273e72771060&v=4" alt="Manu Correa"/>
+                  <img 
+                    src={appointment.user.avatar_url} 
+                    alt={appointment.user.name}
+                  />
 
-                  <strong>Manu Correa</strong>
+                  <strong>{appointment.user.name}</strong>
 
                 </div>
               </Appointment>
+
+              ))}
+              
             </Section>
         </Schedule>
         <Calendar>

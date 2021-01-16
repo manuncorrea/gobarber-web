@@ -16,9 +16,9 @@ import Button from '../../components/Button';
 
 import { Container, Content, AnimationContainer,  Background} from './styles';
 
-interface SignInFormData{
-    email: string,
-    password: string;
+interface SignInFormData {
+    email: string;
+    password: string;   
 }
 
 const SignIn: React.FC = () => {
@@ -34,7 +34,9 @@ const SignIn: React.FC = () => {
             formRef.current?.setErrors({}); // zerando os errors
 
             const schema = Yup.object().shape({
-                email: Yup.string().required('E-mail obrigatorio').email('Digite um e-email valido'),
+                email: Yup.string()
+                .required('E-mail obrigatorio')
+                .email('Digite um e-email valido'),
                 password: Yup.string().required('Senha obrigatoria'),
             });
             await schema.validate(data, {
@@ -47,13 +49,11 @@ const SignIn: React.FC = () => {
             });
 
             history.push('/dashboard');
-
         }catch(err) {
             if(err instanceof Yup.ValidationError) {
                 const errors = getValidationErrors(err);
 
                 formRef.current?.setErrors(errors);  
-
                 return;
             }  
 
@@ -74,19 +74,19 @@ const SignIn: React.FC = () => {
                     <img src={logoImg} alt="GoBarber" />
 
                     <Form ref={formRef} onSubmit={handleSubmit}>
-                        <h1>Faça seu logon</h1>
+                        <h1>Faça seu Logon</h1>
 
                         <Input name="email" icon={FiMail} placeholder="E-mail" />
                         <Input name="password" icon={FiLock} type="password" placeholder="Senha" />
 
                         <Button type="submit">Entrar</Button>
 
-                        <Link to="forgot-password">Esqueci minha senha</Link>
+                        <Link to="/forgot-password">Esqueci minha senha</Link>
                     </Form>
 
                     <Link to="/signup">
-                        <FiLogIn />
-                        Criar conta
+                        <FiLogIn size={20} />
+                        Criar Conta
                     </Link>
                 </AnimationContainer>
             </Content>
